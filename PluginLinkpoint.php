@@ -121,7 +121,7 @@ class PluginLinkpoint extends GatewayPlugin
                 lang("Check CVV2") => array (
                                         "type"          =>"hidden",
                                         "description"   =>lang("Select YES if you want to accept CVV2 for this plugin."),
-                                        "value"         =>"0"
+                                        "value"         =>"1"
                                        )
         );
         return $variables;
@@ -320,19 +320,16 @@ class PluginLinkpoint extends GatewayPlugin
         $expLen = strlen($params['userCCExp']);
 
         $myorder['cardexpyear']  = mb_substr($params['userCCExp'], $expLen - 2, $expLen);
-        // commented out code for CVV2 values. You could use a client profile field to get
-        // that data here to save a % per transaction.
-        /*
-        $myorder['cvmvalue'] = $params[??]
+
+        $myorder['cvmvalue'] = $params["userCCCVV2"];
+
         if ($myorder['cvmvalue']) {
-        	$myorder['cvmindicator']     = "provided";
+          $myorder['cvmindicator']     = "provided";
         }
         else {
-        */
-        $myorder['cvmindicator']     = 'not_provided';
-        /*
+          $myorder['cvmindicator']     = 'not_provided';
         }
-        */
+
 
         // BILLING INFO
         $myorder['name']     = $params['userFirstName'] .' '. $params['userLastName'];

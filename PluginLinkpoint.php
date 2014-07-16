@@ -144,26 +144,8 @@ class PluginLinkpoint extends GatewayPlugin
         $myorder['configfile'] = $params['plugin_linkpoint_Store'];
 
 
-        // * To Void a transaction is to cancel a payment transaction.
-        //   Merchants can void transactions prior to settlement.
-        //   Once the transaction has settled, the merchant has to perform a return or credit to reverse
-        //   the charges and credit the customer's card.
-        //$myorder['ordertype']  = 'VOID';
+        $myorder['ordertype']  = 'CREDIT';
 
-        // * A Return transaction returns funds to a customer�s credit card for an existing order on the system.
-        //   To perform a return, you need the order number (which you can find in your reports).
-        //   After you perform a Return for the full order amount, the order will appear in your reports with a
-        //   transaction amount of 0.00.
-        $myorder['ordertype']  = 'RETURN';
-
-        // * A Credit transaction returns funds to a customer�s credit card on orders without an order number.
-        //   This transaction is intended for returns against orders processed outside the system.
-        //   Credit transactions are marked as Returns in your reports.
-        //$myorder['ordertype']  = 'CREDIT';
-
-
-        // Check if the plugin is configure to run in live mode and the
-        // control panel is not in demo demo mode.
         if ($params['plugin_linkpoint_Live'] && !DEMO)  {
             $myorder['result'] = 'LIVE';
         }
@@ -191,39 +173,7 @@ class PluginLinkpoint extends GatewayPlugin
 
         // The Order ID to be assigned to the transaction. This field must be a valid Order ID from a prior Sale
         $myorder['oid']               = $params['invoiceRefundTransactionId'];
-
-        // I'm not quite sure what the spec was on this anymore.
-        $myorder['terminaltype']      = "UNSPECIFIED";
-
-        // Get IP of person initiating transaction.
-        if (getenv('HTTP_X_FORWARDED_FOR')) {
-        $ip   = getenv('HTTP_X_FORWARDED_FOR');
-        } else {
-        $ip   = getenv('REMOTE_ADDR');
-        }
-        $myorder['ip'] = $ip; //needed for ip blocking/fraud protection
-
         $myorder['chargetotal'] = $params['invoiceTotal'];
-
-        // card info
-        $myorder['cardnumber']   = $params['userCCNumber'];
-        $myorder['cardexpmonth'] = mb_substr($params['userCCExp'], 0, 2);
-        $expLen = strlen($params['userCCExp']);
-        $myorder['cardexpyear']  = mb_substr($params['userCCExp'], $expLen - 2, $expLen);
-
-        // commented out code for CVV2 values. You could use a client profile field to get
-        // that data here to save a % per transaction.
-        /*
-        $myorder['cvmvalue'] = $params[??]
-        if ($myorder['cvmvalue']) {
-        	$myorder['cvmindicator']     = "provided";
-        }
-        else {
-        */
-        $myorder['cvmindicator']     = 'not_provided';
-        /*
-        }
-        */
 
         // lpxchange class will use this path for curl.
         if ($params['pathCurl'] != '') {

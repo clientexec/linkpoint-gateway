@@ -3,9 +3,9 @@
  *  class.lpxchange.php - (c) 2005 Darrel O'Pry, thing.net communications, llc
  *  - I was unhappy linkpoints php class, so I rewrote it. 6/5/2005. -dopry
  *
- *  requires php >=  4.3.0 
+ *  requires php >=  4.3.0
  *
- *  This class provides a slightly more OO interface than the 
+ *  This class provides a slightly more OO interface than the
  *  on provided by linkpoint. It supports php4 / php5, provides
  *  some sanity checking, and doesn't print errors directly to the
  *  output.
@@ -14,16 +14,16 @@
  *
  *  This class will try three transports for the transaction
  *  with linkpoint.
- *	  - liblphp extension, 
+ *	  - liblphp extension,
  *    - curl extension
  *	  - curl binary,  if specified in pathCurl.
  *
- *  if it is passed an XML string it will attempt to 
+ *  if it is passed an XML string it will attempt to
  *  send that XML string to the LinkPoint gateway,
  *  and will return an XML string.
  *
  *  if it is passed an array it will convert
- *  that to an XML string, pass the XML to the gateway, then 
+ *  that to an XML string, pass the XML to the gateway, then
  *  return a hash.
  */
 
@@ -56,11 +56,11 @@ class lpxchange {
     $this->debugPrint("Transport:", "curl extension host: $host");
     $ch = curl_init ();
     curl_setopt ($ch, CURLOPT_URL,$host);
-    curl_setopt ($ch, CURLOPT_POST, 1); 
+    curl_setopt ($ch, CURLOPT_POST, 1);
     curl_setopt ($ch, CURLOPT_POSTFIELDS, $xml);
     curl_setopt ($ch, CURLOPT_SSLCERT, $this->keyfile);
 	curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, false);
-	// check the existence of a common name and also verify that it matches the hostname provided. 
+	// check the existence of a common name and also verify that it matches the hostname provided.
 	curl_setopt ($ch, CURLOPT_SSL_VERIFYHOST, false);
     curl_setopt ($ch, CURLOPT_RETURNTRANSFER, 1);
     if ($this->debugging) curl_setopt ($ch, CURLOPT_VERBOSE, 1);
@@ -84,7 +84,7 @@ class lpxchange {
       $curlExec = $curlExec." $curlArgs ";
     }
 
-    $curlExec = $curlExec." -d \"$xml\" -E $this->keyfile -k $host "; 
+    $curlExec = $curlExec." -d \"$xml\" -E $this->keyfile -k $host ";
 
     $responseXML = exec($curlExec,$resultarray, $resultnum);
 
@@ -106,7 +106,7 @@ class lpxchange {
     $this->debugPrint("Location:",'entering process payment');
     $this->debugPrint('Data:', "\n".print_r($data,true));
 
-    if (isset($data["xml"])) { 
+    if (isset($data["xml"])) {
       $xml = $data["xml"];
     }
     else {
@@ -116,7 +116,7 @@ class lpxchange {
     $this->debugPrint('XML: ',"\n".$xml);
 
     $transportUsed = '';
-    // now we try our transports in order liblphp extension, culr extension, curl binary 
+    // now we try our transports in order liblphp extension, culr extension, curl binary
     if (extension_loaded('liblphp')) {
        $transportUsed = 'liblphp';
        $responseXML = $this->_process_liblphp($xml);
@@ -142,7 +142,7 @@ class lpxchange {
     $this->debugPrint('response XML:', "\n". print_r($responseXML,true));
 
     if (isset($data['xml'])) {
-    	return $responseXML; 		
+    	return $responseXML;
     }
     else {
       return $this->decodeXML($responseXML);
@@ -155,7 +155,7 @@ class lpxchange {
       //  implement a proper debugPrint.
       // print out incoming hash
       //if ($this->htmloutput)  print "<pre>$head:".htmlspecialchars($body)."</pre><br>";
-      //else print "$head: $body\n"; 
+      //else print "$head: $body\n";
     }
   }
 
@@ -164,7 +164,7 @@ class lpxchange {
   }
 
 
-  // decode XML 
+  // decode XML
   // sweet little xml parsing trick. I forgot how it works.. I remember being happy about
   // PREG_SET_ORDER.
   function decodeXML($xml) {
@@ -192,17 +192,17 @@ class lpxchange {
   function mapArray($pdata) {
     $this->debugPrint('Location','entering mapArray');
     $this->debugPrint("Data: ",print_r($pdata, true));
-    //first we construct a multidim array  with some validation, then we 
+    //first we construct a multidim array  with some validation, then we
     //convert it to xml...
 
     $tdata = array();
     $errors = array();
 
-    // MERCHANTINFO NODE 
+    // MERCHANTINFO NODE
     //required for any transaction
     if (isset($pdata["configfile"])) {
       $tdata['merchantinfo']['configfile'] = $pdata["configfile"];
-    } 
+    }
     else {
        $errors['configfile']  = 'configfile required for all transactions';
     }
@@ -219,7 +219,7 @@ class lpxchange {
       else {
          $errors['ordertype'] = 'invalid orderoptions->ordertype';
       }
-    } 
+    }
     else {
       $errors['ordertype'] = 'ordertype is required for all transactions';
     }
@@ -242,7 +242,7 @@ class lpxchange {
     if (isset($pdata['cvmindicator']))$tdata['creditcard']['cvmindicator'] 	= $pdata['cvmindicator'];
     if (isset($pdata["track"]))		$tdata['creditcard']['track'] 			= $pdata['track'];
 
-    // BILLING NODE 
+    // BILLING NODE
     if (isset($pdata["name"])) 		$tdata['billing']['name'] 		= $pdata['name'];
     if (isset($pdata["company"]))   $tdata['billing']['company'] 	= $pdata['company'];
     if (isset($pdata["address1"]))  $tdata['billing']['address1'] 	= $pdata['address1'];
@@ -310,8 +310,8 @@ class lpxchange {
     return $tdata;
   }
 
-  // fun with recursion. unrolle a nested 
-  // array into xml, where the tags are the 
+  // fun with recursion. unrolle a nested
+  // array into xml, where the tags are the
   // array keys and the values are the array
   // values.
   function array2xml($node, $children) {

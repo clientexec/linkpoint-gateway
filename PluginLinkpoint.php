@@ -336,10 +336,9 @@ class PluginLinkpoint extends GatewayPlugin
 
         // Set a company name.  IIRC a value is required and NA was linkpoints recommended placeholder.
         if ($params['userOrganization']=='') {
-        $myorder['company'] = "NA";
-        }
-        else {
-        $myorder['company'] = $params['userOrganization'];
+            $myorder['company'] = "NA";
+        }else {
+            $myorder['company'] = str_replace("&", "%26", $params['userOrganization']);
         }
 
 

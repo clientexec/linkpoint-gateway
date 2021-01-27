@@ -12,11 +12,10 @@
  *
  *  @note
  *
- *  This class will try three transports for the transaction
+ *  This class will try two transports for the transaction
  *  with linkpoint.
  *	  - liblphp extension,
  *    - curl extension
- *	  - curl binary,  if specified in pathCurl.
  *
  *  if it is passed an XML string it will attempt to
  *  send that XML string to the LinkPoint gateway,
@@ -38,7 +37,7 @@ class lpxchange {
   var $htmloutput;
   var $transaction;
 
-  function lpxchange($host = 'secure.linkpt.net', $port = '1129', $keyfile='linkpoint.pem', $debugging = false, $htmloutput = true) {
+  function __construct($host = 'secure.linkpt.net', $port = '1129', $keyfile='linkpoint.pem', $debugging = false, $htmloutput = true) {
     $this->host = $host;
     $this->port = $port;
     $this->keyfile = $keyfile;

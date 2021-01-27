@@ -57,7 +57,7 @@ class PluginLinkpoint extends GatewayPlugin
                                           'description' => 'The LinkShield Risk Score at which you decline transactions.<br>(only used if LinkShield is available with your merchant account)',
                                           'value' => '',
                                          ),
-                lang("Live") => array 	(
+                lang("Live") => array   (
                                           "type"        =>"yesno",
                                           "description" =>lang("Select Yes to run live transactions, No to run Demo Transactions"),
                                           "value"       =>""
@@ -95,7 +95,7 @@ class PluginLinkpoint extends GatewayPlugin
                                          ),
                 lang("Invoice After Signup") => array (
                                           "type"        =>"yesno",
-                                          "description" =>lang("Select YES if you want an invoice sent to customer after signup is complete.  Only used for offline plugins"),
+                                          "description" =>lang("Select YES if you want an invoice sent to client after signup is complete.  Only used for offline plugins"),
                                           "value"       =>"1"
                                          ),
                 lang("Signup Name") => array (
@@ -105,18 +105,13 @@ class PluginLinkpoint extends GatewayPlugin
                                          ),
                 lang("Dummy Plugin") => array (
                                           "type"        =>"hidden",
-                                          "description" =>lang("1 = Only used to specify a billing type for a customer. 0 = full fledged plugin requiring complete functions"),
+                                          "description" =>lang("1 = Only used to specify a billing type for a client. 0 = full fledged plugin requiring complete functions"),
                                           "value"       =>"0"
                                          ),
                 lang("Auto Payment") => array (
                                           "type"        =>"hidden",
                                           "description" =>lang("No description"),
                                           "value"       =>"1"
-                                         ),
-                lang("30 Day Billing") => array (
-                                          "type"        =>"hidden",
-                                          "description" =>lang("Select YES if you want ClientExec to treat monthly billing by 30 day intervals.  If you select NO then the same day will be used to determine intervals."),
-                                          "value"       =>"0"
                                          ),
                 lang("Check CVV2") => array (
                                         "type"          =>"hidden",
@@ -128,7 +123,8 @@ class PluginLinkpoint extends GatewayPlugin
     }
 
     function singlePayment($params)
-    { // when set to non recurring
+    {
+ // when set to non recurring
         //Function used to provide users with the ability
         //Plugin variables can be accesses via $params["plugin_[pluginname]_[variable]"] (ex. $params["plugin_paypal_UserID"])
         return $this->autopayment($params);
@@ -146,22 +142,28 @@ class PluginLinkpoint extends GatewayPlugin
 
         $myorder['ordertype']  = 'CREDIT';
 
-        if ($params['plugin_linkpoint_Live'] && !DEMO)  {
+        if ($params['plugin_linkpoint_Live'] && !DEMO) {
             $myorder['result'] = 'LIVE';
-        }
-        else {
-            if(!isset($params['plugin_linkpoint_Demo Mode'])){
-                if($params['plugin_linkpoint_Demo Approve']){
+        } else {
+            if (!isset($params['plugin_linkpoint_Demo Mode'])) {
+                if ($params['plugin_linkpoint_Demo Approve']) {
                     $params['plugin_linkpoint_Demo Mode'] = 1;
-                }else{
+                } else {
                     $params['plugin_linkpoint_Demo Mode'] = 3;
                 }
             }
-            switch($params['plugin_linkpoint_Demo Mode']) {
-              case 1: $myorder['result']="GOOD"; 	break;
-              case 2: $myorder['result']="DUPLICATE";	break;
-              case 3: $myorder['result']="DECLINE"; 	break;
-              default: $myorder['result']="GOOD"; //assume good
+            switch ($params['plugin_linkpoint_Demo Mode']) {
+                case 1:
+                    $myorder['result']="GOOD";
+                    break;
+                case 2:
+                    $myorder['result']="DUPLICATE";
+                    break;
+                case 3:
+                    $myorder['result']="DECLINE";
+                    break;
+                default:
+                    $myorder['result']="GOOD"; //assume good
             }
         }
 
@@ -174,11 +176,6 @@ class PluginLinkpoint extends GatewayPlugin
         // The Order ID to be assigned to the transaction. This field must be a valid Order ID from a prior Sale
         $myorder['oid']               = $params['invoiceRefundTransactionId'];
         $myorder['chargetotal'] = $params['invoiceTotal'];
-
-        // lpxchange class will use this path for curl.
-        if ($params['pathCurl'] != '') {
-        $myorder['pathCurl'] = $params['pathCurl'];
-        }
 
         // Set up setup linkpoint connection vars
         // from plugin settings
@@ -208,38 +205,38 @@ class PluginLinkpoint extends GatewayPlugin
         $result = $linkpointResult['r_approved'];
 
         switch ($result) {
-        case "APPROVED":
-          // Handle approved transactions
-          //$cPlugin->PaymentAccepted($params['invoiceTotal'], $linkpointResult['r_message'] .' (LP Approval: '. $linkpointResult['r_code'] .'; Ref: '. $linkpointResult['r_ref'] .'; Time: '. $linkpointResult['r_time']. ')',0);
-          $cPlugin->PaymentAccepted($params['invoiceTotal'], $linkpointResult['r_message'] .' (LP Approval: '. $linkpointResult['r_code'] .'; Ord: '. $linkpointResult['r_ordernum'] .'; Time: '. $linkpointResult['r_time']. ')',0);
-          $tReturn = array('AMOUNT' => $myorder['chargetotal']);
-          break;
+            case "APPROVED":
+              // Handle approved transactions
+              //$cPlugin->PaymentAccepted($params['invoiceTotal'], $linkpointResult['r_message'] .' (LP Approval: '. $linkpointResult['r_code'] .'; Ref: '. $linkpointResult['r_ref'] .'; Time: '. $linkpointResult['r_time']. ')',0);
+                $cPlugin->PaymentAccepted($params['invoiceTotal'], $linkpointResult['r_message'] .' (LP Approval: '. $linkpointResult['r_code'] .'; Ord: '. $linkpointResult['r_ordernum'] .'; Time: '. $linkpointResult['r_time']. ')', 0);
+                $tReturn = array('AMOUNT' => $myorder['chargetotal']);
+                break;
 
-        case "DECLINED":
-          // Handle declined transactions
-          $tReturn = 'DECLINED '. $linkpointResult['r_error'] .';AVS: '. $linkpointResult['r_avs'] .'; '. $linkpointResult['r_message'] .' (Ord: '. $linkpointResult['r_ordernum'] .')';
-          $cPlugin->PaymentRejected($tReturn);
-          break;
+            case "DECLINED":
+              // Handle declined transactions
+                $tReturn = 'DECLINED '. $linkpointResult['r_error'] .';AVS: '. $linkpointResult['r_avs'] .'; '. $linkpointResult['r_message'] .' (Ord: '. $linkpointResult['r_ordernum'] .')';
+                $cPlugin->PaymentRejected($tReturn);
+                break;
 
-        case 'FRAUD':
-          // Handle fraud transactions similar to declined transactions, but return a different
-          // string.
-          $tReturn = 'FRAUD '. $linkpointResult['r_error'] .' (Ord: '. $linkpointResult['r_ordernum'] .')';
-          $cPlugin->PaymentRejected($tReturn);
-          break;
+            case 'FRAUD':
+              // Handle fraud transactions similar to declined transactions, but return a different
+              // string.
+                $tReturn = 'FRAUD '. $linkpointResult['r_error'] .' (Ord: '. $linkpointResult['r_ordernum'] .')';
+                $cPlugin->PaymentRejected($tReturn);
+                break;
 
-        default:
-          // update error string.
-          if(isset($linkpointResult['r_error']) && $linkpointResult['r_error'] != ''){
-              $tReturn .= 'DECLINED '.$linkpointResult['r_error'];
-              if(isset($linkpointResult['r_ordernum']) && $linkpointResult['r_ordernum'] != ''){
-                  $tReturn .= ' (Ord: '. $linkpointResult['r_ordernum'] .')';
-              }
-          }else{
-              $tReturn = "DECLINED: Your payment was declined for an unknown reason. Check the information that you entered and try again. If the problem continues please contact support.";
-          }
-          $cPlugin->PaymentRejected($tReturn);
-          break;
+            default:
+              // update error string.
+                if (isset($linkpointResult['r_error']) && $linkpointResult['r_error'] != '') {
+                    $tReturn .= 'DECLINED '.$linkpointResult['r_error'];
+                    if (isset($linkpointResult['r_ordernum']) && $linkpointResult['r_ordernum'] != '') {
+                        $tReturn .= ' (Ord: '. $linkpointResult['r_ordernum'] .')';
+                    }
+                } else {
+                    $tReturn = "DECLINED: Your payment was declined for an unknown reason. Check the information that you entered and try again. If the problem continues please contact support.";
+                }
+                $cPlugin->PaymentRejected($tReturn);
+                break;
         }
         return $tReturn;
     }
@@ -257,8 +254,8 @@ class PluginLinkpoint extends GatewayPlugin
         // left for future adventurers to think about or remove.
         /*
         if ($params['isSignup']==1) {
-        	$myorder['order_type'] = "PREAUTH";     //do a pre auth on signup so we can get fraud data if available
-        	$bolInSignup = true;
+            $myorder['order_type'] = "PREAUTH";     //do a pre auth on signup so we can get fraud data if available
+            $bolInSignup = true;
         }
         else {
         */
@@ -270,22 +267,28 @@ class PluginLinkpoint extends GatewayPlugin
 
         // Check if the plugin is configure to run in live mode and the
         // control panel is not in demo demo mode.
-        if ($params['plugin_linkpoint_Live'] && !DEMO)  {
+        if ($params['plugin_linkpoint_Live'] && !DEMO) {
             $myorder['result'] = 'LIVE';
-        }
-        else {
-            if(!isset($params['plugin_linkpoint_Demo Mode'])){
-                if($params['plugin_linkpoint_Demo Approve']){
+        } else {
+            if (!isset($params['plugin_linkpoint_Demo Mode'])) {
+                if ($params['plugin_linkpoint_Demo Approve']) {
                     $params['plugin_linkpoint_Demo Mode'] = 1;
-                }else{
+                } else {
                     $params['plugin_linkpoint_Demo Mode'] = 3;
                 }
             }
-            switch($params['plugin_linkpoint_Demo Mode']) {
-              case 1: $myorder['result']="GOOD"; 	break;
-              case 2: $myorder['result']="DUPLICATE";	break;
-              case 3: $myorder['result']="DECLINE"; 	break;
-              default: $myorder['result']="GOOD"; //assume good
+            switch ($params['plugin_linkpoint_Demo Mode']) {
+                case 1:
+                    $myorder['result']="GOOD";
+                    break;
+                case 2:
+                    $myorder['result']="DUPLICATE";
+                    break;
+                case 3:
+                    $myorder['result']="DECLINE";
+                    break;
+                default:
+                    $myorder['result']="GOOD"; //assume good
             }
         }
 
@@ -305,9 +308,9 @@ class PluginLinkpoint extends GatewayPlugin
 
         // Get IP of person initiating transaction.
         if (getenv('HTTP_X_FORWARDED_FOR')) {
-        $ip   = getenv('HTTP_X_FORWARDED_FOR');
+            $ip   = getenv('HTTP_X_FORWARDED_FOR');
         } else {
-        $ip   = getenv('REMOTE_ADDR');
+            $ip   = getenv('REMOTE_ADDR');
         }
         $myorder['ip'] = $ip; //needed for ip blocking/fraud protection
 
@@ -324,10 +327,9 @@ class PluginLinkpoint extends GatewayPlugin
         $myorder['cvmvalue'] = $params["userCCCVV2"];
 
         if ($myorder['cvmvalue']) {
-          $myorder['cvmindicator']     = "provided";
-        }
-        else {
-          $myorder['cvmindicator']     = 'not_provided';
+            $myorder['cvmindicator']     = "provided";
+        } else {
+            $myorder['cvmindicator']     = 'not_provided';
         }
 
 
@@ -337,7 +339,7 @@ class PluginLinkpoint extends GatewayPlugin
         // Set a company name.  IIRC a value is required and NA was linkpoints recommended placeholder.
         if ($params['userOrganization']=='') {
             $myorder['company'] = "NA";
-        }else {
+        } else {
             $myorder['company'] = str_replace("&", "%26", $params['userOrganization']);
         }
 
@@ -354,7 +356,7 @@ class PluginLinkpoint extends GatewayPlugin
         //we need to have a fail here if we don't have nums in userAddress
         //TODO4.1
         $myorder['addrnum'] = '';
-        if(isset($matches[0])){
+        if (isset($matches[0])) {
             $myorder['addrnum'] = $matches[0];
         }
 
@@ -367,13 +369,6 @@ class PluginLinkpoint extends GatewayPlugin
         $myorder['items']['item']['description'] = $params['invoiceDescription'];
         $myorder['items']['item']['price']       = $params['invoiceTotal'];
         $myorder['items']['item']['quantity']    = '1';
-
-
-        // lpxchange class will use this path for curl.
-        if ($params['pathCurl'] != '') {
-        $myorder['pathCurl'] = $params['pathCurl'];
-        }
-
 
         // Set up setup linkpoint connection vars
         // from plugin settings
@@ -404,41 +399,40 @@ class PluginLinkpoint extends GatewayPlugin
         $result = $linkpointResult['r_approved'];
 
         switch ($result) {
-        case "APPROVED":
-          // Handle approved transactions
-          //$cPlugin->PaymentAccepted($params['invoiceTotal'], $linkpointResult['r_message'] .' (LP Approval: '. $linkpointResult['r_code'] .'; Ref: '. $linkpointResult['r_ref'] .'; Time: '. $linkpointResult['r_time']. ')',0);
-          $cPlugin->PaymentAccepted($params['invoiceTotal'], $linkpointResult['r_message'] .' (LP Approval: '. $linkpointResult['r_code'] .'; Ord: '. $linkpointResult['r_ordernum'] .'; Time: '. $linkpointResult['r_time']. ')',0);
-          // updated to return an empty string for CE 2.8.2 compatability by Modified by Ryan Wilson, ClanBaseLive.com
-          $tReturn = "";
-          break;
+            case "APPROVED":
+              // Handle approved transactions
+              //$cPlugin->PaymentAccepted($params['invoiceTotal'], $linkpointResult['r_message'] .' (LP Approval: '. $linkpointResult['r_code'] .'; Ref: '. $linkpointResult['r_ref'] .'; Time: '. $linkpointResult['r_time']. ')',0);
+                $cPlugin->PaymentAccepted($params['invoiceTotal'], $linkpointResult['r_message'] .' (LP Approval: '. $linkpointResult['r_code'] .'; Ord: '. $linkpointResult['r_ordernum'] .'; Time: '. $linkpointResult['r_time']. ')', 0);
+              // updated to return an empty string for CE 2.8.2 compatability by Modified by Ryan Wilson, ClanBaseLive.com
+                $tReturn = "";
+                break;
 
-        case "DECLINED":
-          // Handle declined transactions
-          $tReturn = 'DECLINED '. $linkpointResult['r_error'] .';AVS: '. $linkpointResult['r_avs'] .'; '. $linkpointResult['r_message'] .' (Ord: '. $linkpointResult['r_ordernum'] .')';
-          $cPlugin->PaymentRejected($tReturn);
-          break;
+            case "DECLINED":
+              // Handle declined transactions
+                $tReturn = 'DECLINED '. $linkpointResult['r_error'] .';AVS: '. $linkpointResult['r_avs'] .'; '. $linkpointResult['r_message'] .' (Ord: '. $linkpointResult['r_ordernum'] .')';
+                $cPlugin->PaymentRejected($tReturn);
+                break;
 
-        case 'FRAUD':
-          // Handle fraud transactions similar to declined transactions, but return a different
-          // string.
-          $tReturn = 'FRAUD '. $linkpointResult['r_error'] .' (Ord: '. $linkpointResult['r_ordernum'] .')';
-          $cPlugin->PaymentRejected($tReturn);
-          break;
+            case 'FRAUD':
+              // Handle fraud transactions similar to declined transactions, but return a different
+              // string.
+                $tReturn = 'FRAUD '. $linkpointResult['r_error'] .' (Ord: '. $linkpointResult['r_ordernum'] .')';
+                $cPlugin->PaymentRejected($tReturn);
+                break;
 
-        default:
-          // update error string.
-          if(isset($linkpointResult['r_error']) && $linkpointResult['r_error'] != ''){
-              $tReturn .= 'DECLINED '.$linkpointResult['r_error'];
-              if(isset($linkpointResult['r_ordernum']) && $linkpointResult['r_ordernum'] != ''){
-                  $tReturn .= ' (Ord: '. $linkpointResult['r_ordernum'] .')';
-              }
-          }else{
-              $tReturn = "DECLINED: Your payment was declined for an unknown reason. Check the information that you entered and try again. If the problem continues please contact support.";
-          }
-          $cPlugin->PaymentRejected($tReturn);
-          break;
+            default:
+              // update error string.
+                if (isset($linkpointResult['r_error']) && $linkpointResult['r_error'] != '') {
+                    $tReturn .= 'DECLINED '.$linkpointResult['r_error'];
+                    if (isset($linkpointResult['r_ordernum']) && $linkpointResult['r_ordernum'] != '') {
+                        $tReturn .= ' (Ord: '. $linkpointResult['r_ordernum'] .')';
+                    }
+                } else {
+                    $tReturn = "DECLINED: Your payment was declined for an unknown reason. Check the information that you entered and try again. If the problem continues please contact support.";
+                }
+                $cPlugin->PaymentRejected($tReturn);
+                break;
         }
         return $tReturn;
     }
 }
-?>

@@ -58,9 +58,10 @@ class lpxchange {
     curl_setopt ($ch, CURLOPT_POST, 1);
     curl_setopt ($ch, CURLOPT_POSTFIELDS, $xml);
     curl_setopt ($ch, CURLOPT_SSLCERT, $this->keyfile);
-	curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, false);
-	// check the existence of a common name and also verify that it matches the hostname provided.
-	curl_setopt ($ch, CURLOPT_SSL_VERIFYHOST, false);
+	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+	curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+	$caPathOrFile = \Composer\CaBundle\CaBundle::getSystemCaRootBundlePath();
+	curl_setopt($ch, is_dir($caPathOrFile) ? CURLOPT_CAPATH : CURLOPT_CAINFO, $caPathOrFile);
     curl_setopt ($ch, CURLOPT_RETURNTRANSFER, 1);
     if ($this->debugging) curl_setopt ($ch, CURLOPT_VERBOSE, 1);
     #  use curl to send the xml SSL string
